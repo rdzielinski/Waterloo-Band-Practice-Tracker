@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Band Practice Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Pirata+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.3.1",
+    "react/": "https://esm.sh/react@18.3.1/",
+    "react-dom": "https://esm.sh/react-dom@18.3.1",
+    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+    "react-dom/": "https://esm.sh/react-dom@18.3.1/",
+    "recharts": "https://esm.sh/recharts@2.12.7",
+    "recharts/": "https://esm.sh/recharts@2.12.7/",
+    "@google/genai": "https://esm.sh/@google/genai",
+    "lucide-react": "https://esm.sh/lucide-react@0.394.0",
+    "firebase/compat/app": "https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js",
+    "firebase/compat/firestore": "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js",
+    "firebase/compat/auth": "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.3.0/",
+    "firebase-admin": "https://aistudiocdn.com/firebase-admin@^13.5.0",
+    "firebase-functions": "https://aistudiocdn.com/firebase-functions@^6.6.0"
+  }
+}
+</script>
+
+
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            maroon: {
+              'DEFAULT': '#6D282B',
+              'light': '#8A4F4F',
+              'dark': '#501D20',
+              'darkest': '#3C1618',
+            },
+            gold: {
+              'DEFAULT': '#FFC72C',
+              'light': '#FFD700',
+              'dark': '#DAA520',
+            },
+          },
+          fontFamily: {
+            heading: ['"Pirata One"', 'serif'],
+            sans: ['"Inter"', 'sans-serif'],
+          },
+        }
+      }
+    }
+</script>
+<style>
+    .progress-bar-stripes {
+        background-image: linear-gradient(
+            45deg, 
+            rgba(255, 255, 255, 0.15) 25%, 
+            transparent 25%, 
+            transparent 50%, 
+            rgba(255, 255, 255, 0.15) 50%, 
+            rgba(255, 255, 255, 0.15) 75%, 
+            transparent 75%, 
+            transparent
+        );
+        background-size: 1rem 1rem;
+        animation: animate-stripes 2s linear infinite;
+    }
+
+    @keyframes animate-stripes {
+        from { background-position: 1rem 0; }
+        to { background-position: 0 0; }
+    }
+
+    .animate-glow {
+        animation: glow 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+        from {
+            box-shadow: 0 0 2px #FFD700, 0 0 5px #FFD700, 0 0 8px #DAA520;
+        }
+        to {
+            box-shadow: 0 0 5px #FFD700, 0 0 10px #FFD700, 0 0 15px #DAA520;
+        }
+    }
+    
+    .progress-bar-shimmer::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background-image: linear-gradient(
+            -75deg,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0) 40%,
+            rgba(255, 255, 255, 0.4) 50%,
+            rgba(255, 255, 255, 0) 60%,
+            rgba(255, 255, 255, 0) 100%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 2.5s linear infinite;
+    }
+
+    @keyframes shimmer {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
+
+    @keyframes flash-new-entry {
+        0% { background-color: rgba(255, 199, 44, 0.4); } /* gold with alpha */
+        100% { background-color: transparent; }
+    }
+
+    .animate-flash {
+        animation: flash-new-entry 2s ease-out forwards;
+    }
+
+    @keyframes entry-animation {
+        0% {
+            opacity: 0;
+            transform: translateY(20px) scale(0.97);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .animate-list-item {
+        opacity: 0; /* Start hidden */
+        animation: entry-animation 0.5s ease-out forwards;
+    }
+    
+    @keyframes fade-in-up {
+        from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .animate-toast-in {
+        animation: fade-in-up 0.4s ease-out forwards;
+    }
+
+    @media print {
+        body.is-printing {
+            background-color: #fff; /* Ensure white background for print */
+        }
+
+        /* Hide everything by default when printing */
+        body.is-printing > #root > div > * {
+            display: none;
+        }
+
+        /* Only show the printable container */
+        body.is-printing .printable-container {
+            display: block !important;
+        }
+        
+        /* Make the report take up the whole page */
+        .printable-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            padding: 1rem;
+            margin: 0;
+            box-shadow: none !important;
+            border: none !important;
+            background-color: #fff !important;
+            color: #000 !important;
+        }
+
+        /* Adjust text colors for readability on paper */
+        .printable-area *,
+        .printable-area h1,
+        .printable-area h2,
+        .printable-area h3,
+        .printable-area p,
+        .printable-area span,
+        .printable-area div {
+            color: #000 !important;
+        }
+    }
+
+</style>
+</head>
+<body class="bg-maroon-darkest">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>

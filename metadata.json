@@ -1,0 +1,5 @@
+{
+  "name": "Band Practice Tracker",
+  "description": "An application for music students to log their instrument practice time. Teachers can view leaderboards and compare practice hours across different class levels to foster a healthy and motivating practice environment.",
+  "requestFramePermissions": []
+}

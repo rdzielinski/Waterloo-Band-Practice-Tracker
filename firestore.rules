@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Helper Functions ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Check if the user has the 'teacher' role in their user profile
+    function isTeacher() {
+      return isSignedIn() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // --- Collection Rules ---
+
+    // Users Collection
+    match /users/{userId} {
+      // Allow anyone signed in to read user profiles (needed for resolving names/roles)
+      allow read: if isSignedIn();
+      // Users can write their own profile; Teachers can write any profile
+      allow write: if isOwner(userId) || isTeacher();
+    }
+
+    // Practice Entries Collection
+    match /practiceEntries/{entryId} {
+      // Allow ALL signed-in users to read ALL entries
+      // This explicitly enables the "Full Leaderboard" feature for students
+      allow read: if isSignedIn();
+      
+      // Allow users to create entries only for themselves
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      
+      // Allow users to update/delete their own entries
+      // Teachers can update/delete any entry
+      allow update, delete: if isOwner(resource.data.userId) || isTeacher();
+    }
+
+    // Goals Collection (Document ID is the student's name)
+    match /goals/{studentName} {
+      allow read: if isSignedIn();
+      // Allow write if teacher OR if the authenticated user's name matches the document ID
+      allow write: if isTeacher() || (
+        isSignedIn() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.name == studentName
+      );
+    }
+
+    // Grade Goals Collection
+    match /gradeGoals/{gradeId} {
+      allow read: if isSignedIn();
+      allow write: if isTeacher();
+    }
+
+    // Lesson Plans Collection
+    match /lessonPlans/{planId} {
+      allow read: if isSignedIn();
+      allow write: if isTeacher();
+    }
+    
+    // Legacy/Demo Collection for connection testing
+    match /compatDemo/{docId} {
+      allow read, write: if true;
+    }
+  }
+}
