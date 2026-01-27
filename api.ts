@@ -226,6 +226,11 @@ export const api: Api = {
   },
 
   async addEntry(entry: Omit<PracticeEntry, "id">): Promise<string> {
+    // Validate that userId is set - this is required by Firestore security rules
+    if (!entry.userId) {
+      throw new Error("Cannot submit practice entry: User ID is missing. Please sign out and sign back in.");
+    }
+
     const payload: Record<string, unknown> = {
       userId: entry.userId,
       studentName: entry.studentName,
@@ -235,6 +240,7 @@ export const api: Api = {
       date: Timestamp.fromDate(new Date(entry.date ?? new Date().toISOString())),
       notes: entry.notes ?? "",
       aiCoachResponse: entry.aiCoachResponse ?? "",
+      teacherNotes: entry.teacherNotes ?? "",
       ipAddress: entry.ipAddress ?? "",
     };
     const ref = await db.collection("practiceEntries").add(payload);

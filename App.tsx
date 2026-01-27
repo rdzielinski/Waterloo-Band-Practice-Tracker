@@ -59,7 +59,7 @@ const App: React.FC = () => {
         case 'unavailable':
           return 'The service is currently unavailable. Check your internet and try again.';
         case 'permission-denied':
-          return 'You do not have permission to access this data. Students can only view their own entries.';
+          return 'You do not have permission to perform this action. Please try signing out and signing back in.';
         case 'unauthenticated':
           return 'You are not authenticated. Please log in again.';
         case 'deadline-exceeded':
